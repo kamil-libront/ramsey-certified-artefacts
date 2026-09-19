@@ -1,0 +1,598 @@
+% Draft v0.2 -- 20 September 2026
+% Target: arXiv math.CO (and, after arXiv, a journal note)
+% Build: tectonic ramsey_certified_note.tex   (or pdflatex + bibtex-free build)
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\theoremstyle{plain}
+
+\newcommand{\K}{\ensuremath{K}}
+\newcommand{\R}[2]{\ensuremath{R(#1,#2)}}
+\newcommand{\Zn}{\ensuremath{\mathbb{Z}_n}}
+\newcommand{\Zp}{\ensuremath{\mathbb{Z}_p}}
+
+\title{Certified structural restrictions on $(5,5)$- and $(4,6)$-free graphs:\\
+an independently verifiable computational package}
+\author{Kamil Libront\\[2pt]
+\small BEng (Hons) Mechanical Engineering\\
+\small Independent Researcher\\
+\small \texttt{kamil.libront@gmail.com}
+}
+% PAPER-META version=0.2 date=2026-09-20 lang=EN sync=878ff004f43e
+\date{Version 0.2 $\cdot$ 2026-09-20 $\cdot$ EN}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note is a package of \emph{independently verifiable computational
+artefacts} about both open families $43 \le \R{5}{5} \le 46$ and
+$36 \le \R{4}{6} \le 40$. Every statement below is backed by machine-checkable
+evidence: an exhaustive enumeration re-derived by a code-independent method, a
+DRAT unsatisfiability proof validated with the independent checker
+\texttt{drat-trim}, or a brute-force verifier whose logic is the defining
+condition itself. We report nothing as a search ``finding''; searches without a
+certificate are explicitly delimited as such.
+
+Concretely: (i)~an exhaustive enumeration shows there is no \emph{cyclic}
+(circulant) $(5,5)$-free colouring of $\K_n$ for $42 \le n \le 48$, while
+$20$ of the $2^{20}$ cyclic colourings of $\K_{41}$ are $(5,5)$-free (explicit
+difference classes given); since a vertex-transitive graph of prime order is
+circulant, there is consequently \emph{no vertex-transitive $(5,5)$-free
+graph on $43$ or $47$ vertices}. (ii)~The same exhaustive treatment of cyclic
+families shows there is no cyclic $(4,6)$-free colouring of $\K_n$ for
+$34 \le n \le 40$, hence no vertex-transitive $(4,6)$-free graph on $37$
+vertices. (iii)~The $42$-vertex $(5,5)$-free graph of Exoo (1989) does not
+extend to $43$ vertices: the associated $42$-variable, $2318$-clause
+unsatisfiability instance carries DRAT proofs validated externally.
+(iv)~The two published witnesses (Exoo's $42$-vertex $(5,5)$-free graph and
+$35$-vertex $(4,6)$-free graph) are re-verified from scratch by brute force as
+part of this package.
+
+The negative statements are established by DRAT certificates; the positive
+colourings by an independent brute-force checker; all artefacts are listed
+with SHA-256 digests and a one-command verification protocol. We do not decide
+either $\R{5}{5}$ or $\R{4}{6}$. A $384$-CPU-hour CDCL portfolio on $\K_{43}$
+returned no verdict, and our simulated-annealing search --- whose clique
+objective provably plateaus at cost $>0$ regardless of parameters --- failed
+to reproduce published constructions in equal budgets; both are reported as
+calibration results carrying no evidential weight.
+\end{abstract}
+
+\section{Introduction}
+
+A two-colouring of the edges of a complete graph $\K_n$ is called
+\emph{$(r,s)$-free} if it contains neither a red $\K_r$ nor a blue $\K_s$;
+equivalently $\R{r}{s} > n$. The diagonal case $r=s=5$ has been open for more
+than three decades: writing $43 \le \R{5}{5} \le 46$, the lower bound is
+Exoo's $42$-vertex construction of 1989 and the upper bound the counting-plus-
+machine-verification argument of Angeltveit and McKay. The off-diagonal case
+$36 \le \R{4}{6} \le 40$ is likewise open, with the lower bound due to Exoo
+(2012). The conjecture $\R{5}{5} = 43$ is standard in the literature
+(Section~\ref{sec:prior}).
+
+Deciding the remaining gaps is out of reach of a single workstation: a
+rectangular $\K_{43}$ instance has $903$ variables and $2 \cdot \binom{43}{5}
+= 1\,925\,196$ forbidden-clique clauses, and the searches reported below spent
+hundreds of CPU-hours without a verdict. This note therefore does not attempt
+a decision. Its contribution is of a different kind: a \emph{certified
+package of structural statements about highly symmetric families} --- complete,
+cheap to establish, and verifiable by a reader with no access to our machines
+--- which narrows the space in which any witness can live, together with an
+honest inventory of the non-certified searches.
+
+The methodological stance is stated once, here. A computational claim is
+quoted in this note \emph{only if} it is reproducible from the artefacts
+(Section~\ref{sec:repro}) by an independent checker; otherwise it is labelled a
+non-result. In particular the negative statements are machine-checkable
+proofs, and the positive colourings are re-checked by brute force whose code
+is the definition itself.
+
+\begin{quote}
+\textbf{Contribution 1 (Theorem~\ref{thm:cyclic}).} For every $n \in
+\{42,\dots,48\}$ there is no cyclic $(5,5)$-free colouring of $\K_n$; for
+$n = 41$ such colourings exist and we exhibit them. Consequently
+(Corollary~\ref{cor:vt5}) there is no vertex-transitive $(5,5)$-free graph on
+$43$ or $47$ vertices.
+
+\textbf{Contribution 2 (Theorem~\ref{thm:cyclic46}).} For every $n \in
+\{34,\dots,40\}$ there is no cyclic $(4,6)$-free colouring of $\K_n$.
+Consequently (Corollary~\ref{cor:vt46}) there is no vertex-transitive
+$(4,6)$-free graph on $37$ vertices. The published $35$-vertex
+$(4,6)$-free graph of Exoo is \emph{not} cyclic.
+
+\textbf{Contribution 3 (Theorem~\ref{thm:exoo}).} Exoo's $42$-vertex
+$(5,5)$-free graph admits no one-vertex extension to $43$ vertices: it is
+maximal. The instance is certified unsatisfiable by DRAT proofs validated with
+\texttt{drat-trim}.
+
+\textbf{Contribution 4 (Proposition~\ref{prop:witnesses}).} Both published
+witnesses --- Exoo's $42$-vertex $(5,5)$-free and $35$-vertex $(4,6)$-free
+graphs --- are re-verified from scratch by brute force as part of this package.
+\end{quote}
+
+Section~\ref{sec:defs} fixes notation, Section~\ref{sec:methods} describes the
+methods and their validation, Section~\ref{sec:results} states the results,
+Section~\ref{sec:repro} documents the complete set of reproducible artefacts,
+Section~\ref{sec:prior} positions the work relative to the literature, and
+Section~\ref{sec:limits} reports what did not work and why it carries no
+weight.
+
+\section{Definitions and notation}\label{sec:defs}
+
+\begin{definition}
+$R(r,s)$ is the least $N$ such that every $2$-colouring of $E(\K_N)$ contains a
+red $\K_r$ or a blue $\K_s$. A colouring with neither is called
+\emph{$(r,s)$-free}. We identify a colouring with its set of red edges.
+\end{definition}
+
+\begin{definition}
+For $n \ge 3$, let $h = \lfloor n/2 \rfloor$. Label the vertices by
+$\Zn$ and define the \emph{chord class} of an unordered pair $\{i,j\}$ as
+$d = \min\,(|i-j| \bmod n,\, n - |i-j| \bmod n) \in \{1,\dots,h\}$. A colouring
+is \emph{cyclic} (equivalently: a circulant colouring, or a colouring
+constant on the difference sets of $\Zn$) if the colour of $\{i,j\}$ depends
+only on its chord class. A cyclic colouring is thus a subset
+$A \subseteq \{1,\dots,h\}$ of \emph{red classes}, and there are exactly
+$2^{h}$ cyclic colourings of $\K_n$.
+\end{definition}
+
+We use the standard fact that a vertex-transitive graph of prime order is a
+circulant graph; equivalently, a transitive permutation group of prime degree
+is contained in the affine group, so a vertex-transitive graph on $p$ vertices
+is determined by a set of differences in $\Zp$.
+
+\section{Methods and their validation}\label{sec:methods}
+
+Every statement in this note belongs to exactly one of two proof thesauri:
+(i)~a positive statement rests on the brute-force verifier of
+Section~\ref{sec:verifier}; (ii)~a negative statement rests on a dry run of
+an exhaustive enumeration that is re-derived by a code-independent method and,
+for the families, certified by a DRAT proof (Sections~\ref{sec:enumerate}--
+\ref{sec:ext}). There is no third category: in particular no local-search
+output is ever quoted as evidence (Section~\ref{sec:limits}).
+
+\subsection{Independent verifier for positive results}\label{sec:verifier}
+Every colouring reported as positive is checked by brute force: all
+$\binom{n}{r} + \binom{n}{s}$ subsets are enumerated and tested for being
+monochromatic (\texttt{ramsey\_enc.py}, function \texttt{check\_coloring}).
+This verifier intentionally shares no code with any search routine, and its
+logic is the definition itself; it was validated on the classical cases
+$\R{3}{3} = 6$ and $\R{4}{4} = 18$.
+
+\subsection{Exhaustive enumeration of cyclic colourings}\label{sec:enumerate}
+For a cyclic colouring given by red classes $A$, an $r$-subset $S$ is
+red-monochromatic iff the union of the chord classes of its edges is contained
+in $A$. We compute the set of chord-class masks realised by the $r$-subsets
+(and, separately, by the $s$-subsets) and perform a subset (zeta) transform
+over the $2^h$ masks; a colouring $A$ is $(r,s)$-free iff neither $A$ nor its
+complement contains any realised $r$-mask, respectively $s$-mask, as a subset.
+This determines the answer for the whole cyclic family in $O(2^h \cdot h)$
+plus $O(\binom{n}{r})$ mask construction
+(\texttt{cyclic\_ramsey.py}, SHA-256 in Table~\ref{tab:hashes}). This routine
+is fully general in $(r,s)$ and is the method used for both families reported
+here.
+
+\subsection{Independent certification of the negative results}\label{sec:cdcl}
+An enumeration that reports ``none exists'' is only as trustworthy as its
+implementation, so the same statements are re-derived by a method that shares
+no code with it. The cyclic problem is encoded as a SAT instance in the $h$
+Boolean variables ``chord class $d$ is red'', with the two clauses
+$\bigvee_{d \in C(S)} \neg x_d$ and $\bigvee_{d \in C(S)} x_d$ for each
+realised mask $C(S)$ of a (mono-free) $r$- or $s$-subset $S$ (duplicate masks
+omitted). The instances are decided by CDCL and a DRAT proof is emitted, then
+checked by the independent proof checker \texttt{drat-trim}
+(\texttt{cyclic\_sat.py}, general in $(r,s,n)$; instances in
+Table~\ref{tab:cyclic55} and~\ref{tab:cyclic46}; checker commit in
+Table~\ref{tab:hashes}).
+
+\subsection{One-vertex extension}\label{sec:ext}
+Given a verified $(r,s)$-free colouring of $\K_n$, adding a vertex $w$ amounts
+to choosing its red neighbourhood $Y$, subject to: no red $(r-1)$-clique is
+entirely red towards $w$, and no blue $(s-1)$-clique is entirely blue towards
+$w$; every monochromatic clique then lies in a copy already excluded inside
+$\K_n$. This is a SAT instance with $n$ variables. Unsatisfiability of this
+instance, together with a validated DRAT proof, is a machine-checkable
+certificate that the given graph is maximal among $(r,s)$-free graphs
+(\texttt{emit\_cnf.py}, \texttt{certify\_ext.py}).
+
+\subsection{Searches without certificates}\label{sec:noncerts}
+Two incomplete or resource-bounded searches were also run; their outputs are
+reported in Section~\ref{sec:limits} as non-results: a CDCL portfolio with
+random vertex relabelling and solver diversification ($32$ workers, $12$~h
+each on $\K_{43}$), and a vectorised simulated-annealing local search with an
+incrementally maintained count of monochromatic cliques (up to $24$ worker
+processes; cost increment verified against brute force for
+$0,\dots,300$ iterations in a unit test suite). Neither produced a certificate,
+and neither is used as evidence anywhere in this note.
+
+\section{Results}\label{sec:results}
+
+\subsection{The $(5,5)$ cyclic family}\label{sec:res55}
+
+\begin{theorem}\label{thm:cyclic}
+For $n \in \{42,43,44,45,46,47,48\}$ no cyclic $(5,5)$-free colouring of
+$\K_n$ exists. For $n = 41$ exactly $20$ of the $2^{20} = 1\,048\,576$ cyclic
+colourings are $(5,5)$-free (ten up to interchange of colours); the red classes
+of one of them are $\{2,3,4,6,7,9,10,11,15,16\}$.
+\end{theorem}
+
+\begin{proof}
+Exhaustive enumeration over all $2^h$ cyclic colourings by the subset
+transform of Section~3.2, independently re-derived and certified by the CDCL
+encoding and DRAT proofs of Section~3.3 (Table~\ref{tab:cyclic55}); for $n=41$
+the claimed colouring is verified by brute force over all $\binom{41}{5} =
+749\,398$ five-subsets.
+\end{proof}
+
+\begin{table}[ht]\centering\small
+\begin{tabular}{rrrrrrl}
+\toprule
+$n$ & $h$ & cyclic colourings & distinct K5 masks & \multicolumn{2}{c}{exhaustive} & certificate \\
+ & & $2^h$ & (per colour) & time (s) & verdict & DRAT \\
+\midrule
+41 & 20 & $1\,048\,576$ & 8\,434 & 6.5 & 20 free & (SAT model) \\
+42 & 21 & $2\,097\,152$ & 9\,061 & 7.7 & none & verified \\
+43 & 21 & $2\,097\,152$ & 10\,437 & 8.5 & none & verified \\
+44 & 22 & $4\,194\,304$ & 11\,231 & 10.7 & none & verified \\
+45 & 22 & $4\,194\,304$ & 12\,749 & 11.6 & none & verified \\
+46 & 23 & $8\,388\,608$ & 13\,640 & 15.0 & none & verified \\
+47 & 23 & $8\,388\,608$ & 15\,456 & 16.7 & none & verified \\
+48 & 24 & $16\,777\,216$ & 16\,488 & 22.6 & none & verified \\
+\bottomrule
+\end{tabular}
+\caption{Cyclic $(5,5)$-free colourings of $\K_n$. Times are single-core
+wall-clock times on the verification machine (Intel i5-class laptop, Python 3.12,
+NumPy); the CDCL re-derivation and \texttt{drat-trim} validation run in under a
+minute per $n$.}
+\label{tab:cyclic55}
+\end{table}
+
+\begin{corollary}\label{cor:vt5}
+There is no vertex-transitive $(5,5)$-free graph on $43$ vertices, and none on
+$47$ vertices.
+\end{corollary}
+
+\begin{proof}
+A vertex-transitive graph of prime order is circulant; apply
+Theorem~\ref{thm:cyclic} to $n = 43$ and $n = 47$.
+\end{proof}
+
+\begin{remark}
+The corollary is what makes the computation relevant to the open case: any
+counterexample to the conjecture $\R{5}{5} = 43$ --- i.e.\ any $(5,5)$-free
+graph on $43$ vertices --- must have a trivial or non-transitive automorphism
+group, so the highly symmetric candidates that are cheapest to test are
+eliminated by proof. The same computation says nothing about composite orders
+$42$ and $44$--$48$, where transitivity does not force circulancy: for $n = 42$
+the classical construction itself is not cyclic, and vertex-transitive
+$(5,5)$-free graphs of composite order are not excluded by
+Theorem~\ref{thm:cyclic}.
+\end{remark}
+
+\subsection{The $(4,6)$ cyclic family}\label{sec:res46}
+
+\begin{theorem}\label{thm:cyclic46}
+For $n \in \{34,35,36,37,38,39,40\}$ no cyclic $(4,6)$-free colouring of
+$\K_n$ exists.
+\end{theorem}
+
+\begin{proof}
+Identical pipeline to Theorem~\ref{thm:cyclic}: exhaustive subset transform,
+independently re-derived by the CDCL/DRAT encoding
+(Table~\ref{tab:cyclic46}); every stated \texttt{drat-trim} verdict in the
+table is \textsc{verified}.
+\end{proof}
+
+\begin{table}[ht]\centering\small
+\begin{tabular}{rrrrrrrl}
+\toprule
+$n$ & $h$ & distinct masks & \multirow{2}{*}{red masks} & \multirow{2}{*}{blue masks} &
+\multirow{2}{*}{clauses} & \multirow{2}{*}{proof lines} & certificate\\
+ & & $2^h$ & & & & & DRAT \\
+\midrule
+34 & 17 & $2^{17}$ & 712 & 10\,339 & 11\,051 & 248 & \textsc{verified} \\
+35 & 17 & $2^{17}$ & 789 & 12\,085 & 12\,874 & 285 & \textsc{verified} \\
+36 & 18 & $2^{18}$ & 844 & 15\,950 & 16\,794 & 152 & \textsc{verified} \\
+37 & 18 & $2^{18}$ & 933 & 19\,263 & 20\,196 & 333 & \textsc{verified} \\
+38 & 19 & $2^{19}$ & 1\,014 & 24\,223 & 25\,237 & 303 & \textsc{verified} \\
+39 & 19 & $2^{19}$ & 1\,085 & 28\,803 & 29\,888 & 299 & \textsc{verified} \\
+40 & 20 & $2^{20}$ & 1\,197 & 33\,637 & 34\,834 & 276 & \textsc{verified} \\
+\bottomrule
+\end{tabular}
+\caption{Cyclic $(4,6)$-free colourings of $\K_n$: no cyclic $(4,6)$-free
+colouring exists for $34 \le n \le 40$. ``Distinct masks'' = all chord-class
+masks realised by an $r$- or $s$-subset; red/blue masks are the counts used in
+the SAT encoding.}
+\label{tab:cyclic46}
+\end{table}
+
+\begin{corollary}\label{cor:vt46}
+There is no vertex-transitive $(4,6)$-free graph on $37$ vertices.
+\end{corollary}
+
+\begin{proof}
+$37$ is prime, so a vertex-transitive graph on $37$ vertices is circulant;
+apply Theorem~\ref{thm:cyclic46} at $n = 37$.
+\end{proof}
+
+\begin{remark}\label{rem:exoo35}
+The published $35$-vertex $(4,6)$-free graph of Exoo admits an automorphism of
+order $4$ with a fixed point; hence it is \emph{not} circulant and not
+vertex-transitive, and in particular it belongs to no cyclic family.
+Theorem~\ref{thm:cyclic46} therefore does not reproduce that construction.
+The known lower bound $\R{4}{6} \ge 36$ does not come from the symmetric
+family that we are able to rule out. Consequently any witness for
+$\R{4}{6} \ge 37$ (i.e.\ a $(4,6)$-free $\K_{36}$) must likewise be
+asymmetric.
+\end{remark}
+
+\subsection{Maximality of the Exoo graph}\label{sec:resexoo}
+
+\begin{theorem}\label{thm:exoo}
+The $(5,5)$-free graph on $42$ vertices published by Exoo (1989) --- in our
+export, $435$ red edges, verified to contain no monochromatic $\K_5$ --- cannot
+be extended to a $(5,5)$-free colouring of $\K_{43}$. Equivalently, that graph
+is maximal among $(5,5)$-free graphs.
+\end{theorem}
+
+\begin{proof}
+The extension instance of Section~3.4 has $42$ variables and $2318$ clauses
+($1148$ red and $1170$ blue $\K_4$'s), CNF file
+\texttt{ext42.cnf} (SHA-256 in Table~\ref{tab:hashes}). It is unsatisfiable;
+DRAT proofs produced by three independent CDCL solvers were validated by
+\texttt{drat-trim} (Table~\ref{tab:proofs}).
+\end{proof}
+
+\begin{remark}
+This does not exclude \emph{other} $(5,5)$-free graphs on $43$ vertices: if a
+witness for $\R{5}{5} \ge 44$ exists, its $42$-vertex induced subgraphs are
+necessarily different from the published one.
+\end{remark}
+
+\begin{table}[ht]\centering\small
+\begin{tabular}{llrrl}
+\toprule
+instance & solver & proof lines & \texttt{drat-trim} & note \\
+\midrule
+\texttt{ext42} & Glucose (via \texttt{python-sat}) & 92 & \textsc{verified} & three solver names, identical bytes \\
+\texttt{ext42} & Lingeling & 139 & \textsc{verified} & separate derivation \\
+\texttt{ext42} & MapleChrono & 116 & \textsc{verified} & separate derivation \\
+\texttt{ext42} & CaDiCaL 1.0.3 / 1.5.3 / 3.0.0 & 191 / 0 / 131 & not verified & proof export of the API not a valid DRAT \\
+\bottomrule
+\end{tabular}
+\caption{Unsatisfiability certificates and their external validation for the
+extension instance. The CaDiCaL rows are reported for completeness: the DRAT
+text returned by the binding is not a valid proof for the checker, so no claim
+rests on it.}
+\label{tab:proofs}
+\end{table}
+
+\subsection{Re-verification of the published witnesses}\label{sec:reswitnesses}
+
+\begin{proposition}\label{prop:witnesses}
+As part of this package the two published witnesses were re-verified from
+scratch with the independent brute-force checker of
+Section~\ref{sec:verifier}: Exoo's $42$-vertex graph is $(5,5)$-free
+(no $5$-subset is monochromatic), and Exoo's $35$-vertex graph is $(4,6)$-free
+(no red $\K_4$ and no blue $\K_6$).
+\end{proposition}
+
+\begin{proof}
+\texttt{verify\_exoo.py} loads the edge lists and runs
+\texttt{check\_coloring} over all $\binom{42}{5}+\binom{35}{4}+\binom{35}{6}$
+subsets; both flag \texttt{verified=True}. Edge lists and digests are in
+Table~\ref{tab:hashes}. These are \emph{re-verifications of published data},
+not new constructions; they anchor the verifier on objects from the literature.
+\end{proof}
+
+\section{Verification and reproducibility}\label{sec:repro}
+
+This note ships a complete package of artefacts under \texttt{anc/} in the arXiv
+source, and the claims rest on them. The same set is mirrored in a versioned open
+repository, \url{https://github.com/kamil-libront/ramsey-certified-artefacts},
+and --- as a durable record intended to outlive the preprint --- the
+CNF instances and DRAT certificates are also deposited in a permanent DOI
+repository (Zenodo); the links are inserted at submission. If arXiv's upload-size
+limit is exceeded, the deposit is the canonical location and \texttt{anc/} holds
+only a pointer to it. Every artefact was produced locally and checked locally; no
+data left the machines. The full set, with SHA-256 digests and the exact
+commands, is in the companion \texttt{REPRODUCE.md} (English); here we record the
+principle and the headline commands.
+
+\paragraph{Verification protocol.} A reader who wants to confirm the claims
+needs no access to our machines, and in fact should \emph{not} trust them. The
+protocol is: (1)~recompute the enumeration of a cyclic family
+(Section~\ref{sec:enumerate}, seconds); (2)~re-derive the same statement from
+the shipped CNF with \texttt{drat-trim} (Section~\ref{sec:cdcl}, seconds to a
+minute); (3)~re-run the brute-force checks of the positive colourings
+(Section~\ref{sec:verifier}); (4)~verify the DRAT proofs of
+Theorem~\ref{thm:exoo}. Steps 2 and 3 use checkers external to our search and
+enumeration code, so a hardware or implementation error in our layer cannot
+propagate into a claimed verdict.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{ll}
+\toprule
+artefact & SHA-256 (first 16 hex digits) \\
+\midrule
+Exoo $42$-v $(5,5)$-free, edge list ($435$ red) & \texttt{92549d13efc6dbfb} \\
+Exoo $35$-v $(4,6)$-free, edge list & \texttt{ad43f25945f5eef7} \\
+\texttt{cyclic\_ramsey.py} (zeta enumeration) & \texttt{269a88b09eb6c23d} \\
+\texttt{cyclic\_sat.py} (CDCL + DRAT encoding) & \texttt{3c08163c75a31eb1} \\
+\makecell[l]{\texttt{emit\_cnf.py} \\ \texttt{certify\_ext.py} \\ \texttt{extend\_ramsey.py}} & \makecell[l]{\texttt{23da360b\ldots} \\ \texttt{73f56b36\ldots} \\ \texttt{1b150c65\ldots}} \\
+\texttt{ramsey\_enc.py} (independent brute-force verifier) & \texttt{bba3da8e1023aeae} \\
+\texttt{ext42.cnf} ($42$ vars, $2318$ clauses) & \texttt{2b5735a4d1cd4056} \\
+\makecell[l]{\texttt{cyc\_42.cnf} \\ \texttt{cyc\_43.cnf} \\ \texttt{cyc\_48.cnf}} & \makecell[l]{\texttt{5dd03b68\ldots} \\ \texttt{af966485\ldots} \\ \texttt{f13c0d8e\ldots}} \\
+\makecell[l]{\texttt{cyc\_42.drat} \\ \texttt{cyc\_43.drat} \\ \texttt{cyc\_48.drat}} & \makecell[l]{\texttt{e7db6b9d\ldots} \\ \texttt{4e27cbd9\ldots} \\ \texttt{30691b16\ldots}} \\
+\texttt{cyc46\_34..40.cnf} and \texttt{cyc46\_34..40.drat} (VERIFIED) & see \texttt{REPRODUCE.md} \\
+DRAT proofs of \texttt{ext42} (Glu/Ling/Maple) & \makecell[l]{\texttt{683c7cf5\ldots} \\ \texttt{2c6d2dd1\ldots} \\ \texttt{41886e4c\ldots}} \\
+\bottomrule
+\end{tabular}
+\caption{SHA-256 digests of the inputs and certificates; the full digests,
+together with scripts and logs, are in the companion package. The checker
+\texttt{drat-trim} was built from commit \texttt{2e3b2dc0} (2024-11-25).}
+\label{tab:hashes}
+\end{table}
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{ll}
+\toprule
+task & command \\
+\midrule
+cyclic exhaustion & \texttt{python3 cyclic\_ramsey.py 5 5 <n>} (and \texttt{4 6 <n>}) \\
+cyclic certification & \texttt{python3 cyclic\_sat.py <r> <s> <n> glucose4 cyc\_<n>.cnf cyc\_<n>.drat} \\
+proof check & \texttt{drat-trim <f>.cnf <f>.drat}  $\to$ \textsc{verified} \\
+extension instance & \texttt{python3 emit\_cnf.py 5 5 exoo42.txt ext42.cnf} \\
+extension certificate & \texttt{python3 certify\_ext.py 5 5 exoo42.txt glucose4 prova.drat} \\
+witness check & \texttt{python3 ramsey\_enc.py check 41 red41.txt 5 5} \\
+\bottomrule
+\end{tabular}
+\caption{Commands needed to reproduce and independently check every result in
+this note. Running the checks (right-hand side) is all a sceptical reader
+needs to do.}
+\label{tab:cmd}
+\end{table}
+
+\textbf{Hardware.} Searches ran on a two-socket workstation (2 $\times$ Intel
+Xeon E5-2696 v3, $36$ cores / $72$ threads, $256$~GB RAM, Windows~11); the
+enumeration, certification and proof checking reported here ran on a laptop
+(4 cores, Linux). \textbf{Software.} Python 3.11--3.12, NumPy, \texttt{python-sat}
+(Solvers: CaDiCaL, Glucose, Lingeling, MapleChrono, MapleSAT, MergeSAT),
+\texttt{drat-trim} (commit \texttt{2e3b2dc0}). Any of the shipped proofs can be
+regenerated on any machine with \texttt{python-sat} and re-checked with
+\texttt{drat-trim}.
+
+\section{Prior work and positioning}\label{sec:prior}
+
+The bounds $43 \le \R{5}{5} \le 46$ and $36 \le \R{4}{6} \le 40$, the Exoo
+constructions of 1989 and 2012, the conjecture $\R{5}{5} = 43$, and the
+Angeltveit--McKay upper bound are standard; see Radziszowski's dynamic survey
+and the references therein. Recent verified-computation methodology for Ramsey
+numbers --- SAT + computer-algebra certificates in the style of Bright and
+co-workers --- is the template we follow for the DRAT layer: the point is that
+an exhaustive search only becomes a mathematical statement once an independent
+checker confirms a machine-readable proof of the verdict.
+
+\begin{remark}
+The statements here are about \emph{objects} (cyclic families and one specific
+graph) and are verified independently; whether the exhaustion of cyclic
+families and the maximality claim are already recorded in the literature is
+orthogonal to their correctness. Where they overlap known results, this note
+stands as an independent, certified reproduction; where they do not, they are
+new (small) computable facts. No claim in the note depends on novelty.
+\end{remark}
+
+\section{Limitations and non-results}\label{sec:limits}
+
+We record explicitly what we did \emph{not} establish, so that nothing here is
+over-read.
+
+\begin{enumerate}
+\item \textbf{No verdict on $\K_{43}$.} A CDCL portfolio ($32$ workers with
+random vertex relabelling and five solver configurations) ran $12$~h per worker
+on the $(5,5)$-free instance for $n = 43$ --- approximately $384$ CPU-hours ---
+without deciding it. Reported as no-verdict, not as evidence for either side.
+\item \textbf{Local search does not yet reproduce known constructions; we report
+this as a calibration failure, not a finding.} Our vectorised annealing search
+maintains an incrementally verified clique objective (mono-red $\K_r$ plus
+mono-blue $\K_s$). On $K_{35}$ for $(4,6)$ that objective plateaus at
+best cost $\approx 816$ (objective value $4\cdot\#(\text{red }K_4) +
+6\cdot\#(\text{blue }K_6)$; a $(4,6)$-free colouring has value $0$) and on
+$K_{41}$ for $(5,5)$ at $\approx 4350$; the cost increment was verified against
+brute force, so the plateau is not an arithmetic artefact. Twelve parameter
+variants (temperature, perturbation strength, kick, stagnation thresholds)
+all plateau at the same value --- a \emph{structural} plateau of the
+clique-only objective, not a tuning failure. Adding the induced-$\mathrm{P}_4$
+term that underlies Exoo's method (weight $\lambda$, maximised) and sweeping
+$\lambda \in \{0,8,20,40\}$ with $20$ workers and $1800$~s each also fails to
+reach cost $0$ (best $\ge 1056$). Because this search cannot recover objects
+known to exist, its ``no solution'' outcomes carry no weight; we use it only
+as a calibration instrument. This is the main methodological lesson of the
+exercise: \emph{a search that has not passed positive controls cannot be
+quoted as evidence}.
+\item \textbf{No DRAT certificate for CaDiCaL runs} through the
+\texttt{python-sat} API; the valid certificates in Table~\ref{tab:proofs} come
+from other solvers. A clean solution would use CaDiCaL's native proof output
+followed by \texttt{drat-trim} or an LRAT checker.
+\item \textbf{Scope.} Theorems~\ref{thm:cyclic},~\ref{thm:cyclic46}
+and~\ref{thm:exoo} concern cyclic colourings and one specific graph. None is a
+counting argument settling $\R{5}{5}$ or $\R{4}{6}$; they prune candidate
+families and delimit the symmetric part of the search space.
+\end{enumerate}
+
+\paragraph{What would be needed to settle $n = 43$.}
+Either (i) a $(5,5)$-free colouring of $\K_{43}$, which would refute the
+standard conjecture and which the search results above suggest is not reachable
+by naive annealing from the structures we tried; or (ii) an unsatisfiability
+certificate for the $903$-variable instance, which at present requires
+cube-and-conquer with per-cube DRAT/LRAT proofs in the style of the
+$\R{5}{5} \le 46$ computation, i.e.\ cluster-scale resources. A single-machine
+contribution in that direction would be a certified unsat of a structured
+\emph{restriction} (as here), not of the full instance.
+
+\section{Conclusion}
+
+This note delivers a package of structural facts about $(5,5)$- and
+$(4,6)$-free graphs, each backed by an independently checkable artefact: the
+cyclic families are empty in the stated ranges (so vertex-transitive witnesses
+on $43$, $47$ and $37$ vertices do not exist), Exoo's $42$-vertex graph is
+maximal, and the two published witnesses are re-verified from scratch. The
+negative statements carry DRAT proofs validated by an external checker; the
+positive colourings are re-checked by brute force. The open cases remain open:
+we report no verdict on $\R{5}{5}$ and $\R{4}{6}$, the $384$-CPU-hour portfolio
+returned nothing, and we report the calibration failure of our local search
+explicitly so that it is not mistaken for a result. A reader needs only the
+commands in Table~\ref{tab:cmd} to confirm every claim independently.
+
+\paragraph{Acknowledgements.}
+Computations were performed on the author's own hardware. The author thanks
+the maintainers of \texttt{drat-trim}, \texttt{python-sat} and NumPy, the
+verified-computation template of C.~Bright and co-workers, and
+G.~Exoo, B.~D.~McKay, S.~P.~Radziszowski and V.~Angeltveit for the
+constructions and bounds that frame this note.
+
+\begin{thebibliography}{99}
+\bibitem{ramsey1930} F.~P. Ramsey, \emph{On a problem of formal logic},
+Proc. London Math. Soc. \textbf{s2-30} (1930) 264--286.
+\bibitem{erdos1935} P.~Erd\H{o}s, G.~Szekeres, \emph{A combinatorial problem in
+geometry}, Compositio Math. \textbf{1} (1935) 463--470.
+\bibitem{greenwood1955} R.~E. Greenwood, A.~M. Gleason, \emph{Combinatorial
+relations and chromatic graphs}, Canad. J. Math. \textbf{7} (1955) 1--7.
+\bibitem{exoo1989} G.~Exoo, $(5,5)$-free graphs on $42$ vertices, 1989
+(construction underlying $\R{5}{5} \ge 43$).
+\bibitem{exoo2012} G.~Exoo, \emph{On the Ramsey numbers $R(4,6)$},
+Electron. J. Combin. \textbf{19}(1) (2012) \#P66.
+\bibitem{mckay1995} B.~D. McKay, S.~P. Radziszowski, \emph{$R(4,5) = 25$},
+J. Graph Theory \textbf{19} (1995) 309--322.
+\bibitem{am2024} V.~Angeltveit, B.~D. McKay, \emph{$R(5,5) \le 46$},
+arXiv:2409.15709 (2024).
+\bibitem{ds1} S.~P. Radziszowski, \emph{Small Ramsey Numbers}, Dynamic Survey
+DS1, Electron. J. Combin. (updated periodically).
+\bibitem{drat} M.~J.~H. Heule, \emph{DRAT-trim: efficient checking and trimming
+using expressive clausal proofs}, SAT 2014; code at
+\texttt{github.com/marijnheule/drat-trim}.
+\bibitem{pysat} A.~Ignatiev, A.~Morgado, J.~Marques-Silva,
+\emph{PySAT: a Python toolkit for prototyping with SAT oracles}, SAT 2018.
+\bibitem{verified-ramsey} Z.~Li, C.~Duggan, C.~Bright, V.~Ganesh,
+\emph{Verified certificates via SAT and computer algebra systems for the
+Ramsey $R(3,8)$ and $R(3,9)$ problems}, arXiv:2502.06055 (2025).
+\end{thebibliography}
+
+\end{document}

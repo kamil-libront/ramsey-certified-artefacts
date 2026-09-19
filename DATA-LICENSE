@@ -1,0 +1,11 @@
+# Data and computation artefacts are dedicated to the public domain (CC0 1.0).
+
+The CNF instances, DRAT proof files, witness / edge-list data, SHA-256 digests
+and the outputs they encode are statements of fact. To the extent permitted by
+law, Kamil Libront waives all copyright and related or neighboring rights in
+them and dedicates them to the public domain under CC0 1.0 Universal
+(https://creativecommons.org/publicdomain/zero/1.0/legalcode).
+
+No attribution is required when reusing or re-verifying these artefacts.
+The scripts (Python) and the bundled drat-trim checker remain under the MIT
+License (see LICENSE) for the code itself.

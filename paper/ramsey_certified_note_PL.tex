@@ -1,0 +1,343 @@
+% Draft v0.2 -- 20 wrzesnia 2026
+% Wersja polska; wersja angielska: ramsey_certified_note.tex (zrodlo nadrzedne dla arXiv)
+% Synchronizacja wersji: python3 sync_paper_versions.py
+% Build: tectonic ramsey_certified_note_PL.tex
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{polish}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+
+\newtheorem{theorem}{Twierdzenie}
+\newtheorem{lemma}[theorem]{Lemat}
+\newtheorem{corollary}[theorem]{Wniosek}
+\newtheorem{proposition}[theorem]{Stwierdzenie}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definicja}
+\newtheorem{remark}[theorem]{Uwaga}
+\theoremstyle{plain}
+
+\newcommand{\K}{\ensuremath{K}}
+\newcommand{\R}[2]{\ensuremath{R(#1,#2)}}
+\newcommand{\Zn}{\ensuremath{\mathbb{Z}_n}}
+\newcommand{\Zp}{\ensuremath{\mathbb{Z}_p}}
+
+\title{Certyfikowane ograniczenia strukturalne dla grafów $(5,5)$- i $(4,6)$-wolnych:\\
+niezależnie weryfikowalny pakiet obliczeniowy}
+\author{Kamil Libront\\[2pt]
+\small BEng (Hons) Mechanical Engineering\\
+\small Independent Researcher\\
+\small \texttt{kamil.libront@gmail.com}
+}
+% PAPER-META version=0.2 date=2026-09-20 lang=PL sync=878ff004f43e
+\date{Wersja 0.2 $\cdot$ 2026-09-20 $\cdot$ PL}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Niniejsza nota jest pakietem \emph{niezależnie weryfikowalnych artefaktów obliczeniowych} o obu otwartych rodzinach $43 \le \R{5}{5} \le 46$ oraz $36 \le \R{4}{6} \le 40$. Każde twierdzenie poniżej jest poparte dowodem weryfikowalnym maszynowo: wyczerpujący przegląd wyprowadzonym ponownie metodą niezależną od kodu, dowodem DRAT niespełnialności zwalidowanym niezależnym sprawdzaczem \texttt{drat-trim}, albo weryfikatorem brute force, którego logika jest samą definicją. Nic nie zgłaszamy jako "odkrycia przeszukiwania"; wyniki przeszukiwań bez certyfikatu są wprost opisane jako takie.
+
+
+
+Konkretnie: (i)~wyczerpujący przegląd pokazuje, że nie istnieje \emph{cykliczne} (cyrkulacyjne) kolorowanie $(5,5)$-wolne $\K_n$ dla $42 \le n \le 48$, podczas gdy $20$ z $2^{20}$ kolorowań cyklicznych $\K_{41}$ jest $(5,5)$-wolnych(jawne klasy różnicowe podane; skoro graf wierzchołkowo-tranzytywny rzędu pierwszego jest cyrkulacyjny, nie istnieje zatem \emph{wierzchołkowo-tranzytywny graf $(5,5)$-wolny na $43$ ani na $47$ wierzchołkach}. (ii)~Ten sam wyczerpujący przegląd rodzin cyklicznych pokazuje, że nie istnieje cykliczne kolorowanie $(4,6)$-wolne $\K_n$ dla $34 \le n \le 40$, więc nie istnieje wierzchołkowo-tranzytywny graf $(4,6)$-wolny na $37$ wierzchołkach.
+
+(iii)~$42$-wierzchołkowy graf $(5,5)$-wolny Exoo (1989 nie rozszerza się do $43$ wierzchołków: instancja niespełnialności($42$ zmienne,$2318$ klauzul)niesie dowody DRAT zwalidowane zewnętrznie.(iv)~Oba opublikowane świadki(graf Exoo na $42$ wierzchołkach $(5,5)$-wolny i na $35$ wierzchołkach $(4,6)$-wolny)są w ramach tego pakietu ponownie zweryfikowane od zera metodą brute force.
+
+
+
+Twierdzenia negatywne są ustanawiane certyfikatami DRAT;a kolorowania pozytywne -- niezależnym sprawdzaczem brute force; wszystkie artefakty są wypisane ze skrótami SHA-256 i protokołem weryfikacji jedną komendą. Nie rozstrzygamy ani $\R{5}{5}$, ani $\R{4}{6}$. Portfel CDCL na $\K_{43}$ przez $384$ godziny procesora nie dał werdyktu,a nasze przeszukiwanie symulowanym wyżarzaniem --- którego obiektyw klikowy udowodniono,że osiąga plateau przy koszcie $>0$ niezależnie od parametrów --- nie odtworzyło opublikowanych konstrukcji w równych budżetach; oba raportujemy jako wyniki kalibracyjne bez znaczenia dowodowego;;
+
+\end{abstract}
+
+\section{Wprowadzenie}
+
+Dwukolorowanie krawędzi grafu pełnego $\K_n$ nazywamy \emph{$(r,s)$-wolnym}, jeśli nie zawiera czerwonej kopii $\K_r$ ani błękitnej kopii $\K_s$; równoważnie $\R{r}{s} > n$. Przypadek diagonalny $r=s=5$ pozostaje otwarty od ponad trzech dekad: przy granicach $43 \le \R{5}{5} \le 46$ dolna pochodzi z $42$-wierzchołkowej konstrukcji Exoo z 1989 roku,a górna --- z połączenia nierówności zliczających z maszynową weryfikacją autorstwa Angeltveita i McKaya. Przypadek niediagonalny $36 \le \R{4}{6} \le 40$ jest podobnie otwarty,z dolną granicą autorstwa Exoo(2012). Hipoteza $\R{5}{5} = 43$ jest w literaturze standardowa(Sekcja~\ref{sec:prior}.
+
+
+
+Rozstrzygnięcie pozostałej luki jest poza zasięgiem pojedynczej stacji roboczej: prostokątna instancja dla $\K_{43}$ ma $903$ zmienne i $2 \cdot \binom{43}{5} = 1\,925\,196$ klauzul zabraniających kliki,a opisane niżej przeszukiwania zużyły setki godzin procesora bez werdyktu. Niniejsza nota nie próbuje więc rozstrzygać. Jej wkładem jest czego innego: \emph{certyfikowany pakiet twierdzeń strukturalnych o rodzinach o wysokiej symetrii} --- zupełnych,tanich do ustalenia i weryfikowalnych przez czytelnika bez dostępu do naszych maszyn --- który zawęża przestrzeń,w której może żyć jakikolwiek świadek,wraz z uczciwym inwentarzem przeszukiwań niecertyfikowanych.
+
+
+
+Stanowisko metodyczne głosimy tu,raz. Twierdzenie obliczeniowe jest w tej nocie cytowane \emph{tylko wtedy},gdy jest odtwarzalne z artefaktów(Sekcja~\ref{sec:repro}) przez niezależny checker; w przeciwnym razie jest etykietowane jako brak wyniku. W szczególności twierdzenia negatywne to weryfikowalne maszynowo dowody,a kolorowania pozytywne są ponownie sprawdzane brute force,którego kod jest samą definicją;;;
+
+
+
+\begin{quote}
+\textbf{Wkład 1 (Twierdzenie~\ref{thm:cyclic}).} Dla każdego $n \in \{42,\dots,48\}$ nie istnieje cykliczne kolorowanie $(5,5)$-wolne $\K_n$;dla $n = 41$ takie kolorowania istnieją i je wskazujemy. W konsekwencji(Wniosek~\ref{cor:vt5}) nie istnieje wierzchołkowo-tranzytywny graf $(5,5)$-wolny na $43$ ani na $47$ wierzchołkach
+
+
+
+\textbf{Wkład 2 (Twierdzenie~\ref{thm:cyclic46}).} Dla każdego $n \in \{34,\dots,40\}$ nie istnieje cykliczne kolorowanie $(4,6)$-wolne $\K_n$. W konsekwencji(Wniosek~\ref{cor:vt46}) nie istnieje wierzchołkowo-tranzytywny graf $(4,6)$-wolny na $37$ wierzchołkach. Opublikowany $35$-wierzchołkowy graf $(4,6)$-wolny Exoo \emph{nie} jest cykliczny
+
+
+
+\textbf{Wkład 3 (Twierdzenie~\ref{thm:exoo}).} $42$-wierzchołkowy graf $(5,5)$-wolny Exoo nie dopuszcza rozszerzenia o jeden wierzchołek do $43$ wierzchołków: jest maksymalny. Instancja jest certyfikowana jako niespełnialna dowodami DRAT zwalidowanymi przez \texttt{drat-trim}
+
+
+
+\textbf{Wkład 4 (Stwierdzenie~\ref{prop:witnesses}).} Oba opublikowane świadki --- graf Exoo na $42$ wierzchołkach $(5,5)$-wolny i na $35$ wierzchołkach $(4,6)$-wolny --- są w ramach tego pakietu ponownie zweryfikowane od zera metodą brute force\end{quote}
+
+
+
+Sekcja~\ref{sec:defs} ustala notację,Sekcja~\ref{sec:methods} opisuje metody i ich walidację,Sekcja~\ref{sec:results} zawiera wyniki,Sekcja~\ref{sec:repro} dokumentuje zupełny zbiór artefaktów odtwarzalnych,Sekcja~\ref{sec:prior} pozycjonuje pracę względem literatury,a Sekcja~\ref{sec:limits} raportuje,co się nie udało i czemu to nie niesie żadnej wagi;;;;
+
+
+
+\section{Definicje i notacja}\label{sec:defs}
+
+
+
+\begin{definition}
+$R(r,s)$ to najmniejsze $N$ takie,że każde dwukolorowanie $E(\K_N)$ zawiera czerwone $\K_r$ albo błękitne $\K_s$. Kolorowanie bez obu nazywamy \emph{$(r,s)$-wolnym}. Kolorowanie utożsamiamy ze zbiorem jego czerwonych krawędzi;;\end{definition}
+
+
+
+\begin{definition}
+Dla $n \ge 3$ niech $h = \lfloor n/2 \rfloor$. Wierzchołki numerujemy elementami $\Zn$ i definiujemy \emph{klasę cięciw} pary $\{i,j\}$ jako $d = \min\,(|i-j| \bmod n,\, n - |i-j| \bmod n) \in \{1,\dots,h\}$. Kolorowanie jest \emph{cykliczne}(równoważnie: cyrkulacyjne,tzn. stałe na klasach różnic $\Zn$),jeśli kolor $\{i,j\}$ zależy wyłącznie od klasy cięciw. Kolorowanie cykliczne to więc podzbiór $A \subseteq \{1,\dots,h\}$ \emph{klas czerwonych},co daje dokładnie $2^{h}$ kolorowań cyklicznych $\K_n$.;\end{definition}
+
+
+
+Korzystamy ze standardowego faktu,że graf wierzchołkowo-tranzytywny rzędu pierwszego jest cyrkulacyjny: tranzytywna grupa permutacji stopnia pierwszego zawiera się w grupie afinicznej,więc graf wierzchołkowo-tranzytywny na $p$ wierzchołkach jest wyznaczony przez zbiór różnic w $\Zp$;;
+
+
+
+\section{Metody i ich walidacja}\label{sec:methods}
+
+
+
+Każde twierdzenie tej noty należy do dokładnie jednej z dwóch tez dowodowych:(i)~twierdzenie pozytywne opiera się na weryfikatorze brute force z Sekcji~\ref{sec:verifier};(ii)~twierdzenie negatywne opiera się na uruchomieniu wyczerpującego przeglądu,wyprowadzonego ponownie metodą niezależną od kodu,i,dla rodzin,certyfikowanego dowodem DRAT(Sekcje~\ref{sec:enumerate}--\ref{sec:ext}). Nie ma trzeciej kategorii: w szczególności żaden wynik przeszukiwania lokalnego nie jest nigdy cytowany jako dowód(Sekcja~\ref{sec:limits}.;;
+
+
+
+\subsection{Niezależny weryfikator wyników pozytywnych}\label{sec:verifier}
+Każde kolorowanie raportowane jako pozytywne jest sprawdzane metodą brute force: wypisujemy wszystkie $\binom{n}{r} + \binom{n}{s}$ podzbiorów i testujemy jednobarwność(\texttt{ramsey\_enc.py},funkcja \texttt{check\_coloring}.. Weryfikator celowo nie dzieli kodu z żadną rutyną przeszukującą,a jego logika to sama definicja;zwalidowano go na klasycznych przypadkach $\R{3}{3} = 6$ oraz $\R{4}{4} = 18$.
+
+\subsection{Wyczerpujący przegląd kolorowań cyklicznych}\label{sec:enumerate}
+Dla kolorowania cyklicznego zadanego klasami czerwonymi $A$ podzbiór $S$ mocy $r$ jest czerwono-jednobarwny wtedy i tylko wtedy,gdy suma klas cięciw jego krawędzi zawiera się w $A$. Liczymy zbiór masek klas cięciw realizowanych przez podzbiory mocy $r$(osobno: mocy $s$)i wykonujemy transformatę podzbiorów(zeta)nad $2^h$ maskami;kolorowanie $A$ jest $(r,s)$-wolne wtedy i tylko wtedy,gdy ani $A$,ani jego dopełnienie nie zawiera żadnej zrealizowanej maski odpowiednio $r$ lub $s$ jako podzbioru. Daje to odpowiedź dla całej rodziny cyklicznej w czasie $O(2^h \cdot h)$ plus $O(\binom{n}{r})$ na budowę masek(\texttt{cyclic\_ramsey.py},skrót SHA-256 w Tabeli~\ref{tab:hashes}). Ta rutyna jest w pełni ogólna w $(r,s)$ i jest metodą używaną dla obu rodzin raportowanych tutaj.
+
+
+
+\subsection{Niezależna certyfikacja wyników negatywnych}\label{sec:cdcl}
+Przegląd,który orzeka "nie istnieje",jest tyle wart,ile jego implementacja,więc te same fakty wyprowadzamy metodą nie dzielącą z nim kodu. Problem cykliczny kodujemy jako instancję SAT w $h$ zmiennych boolowskich "klasa cięciw $d$ jest czerwona",z klauzulami $\bigvee_{d \in C(S)} \neg x_d$ oraz $\bigvee_{d \in C(S)} x_d$ dla każdej zrealizowanej maski $C(S)$ podzbioru(jednobarwnego)mocy $r$ lub $s$(maski powtórzone pomijamy). Instancje rozstrzyga CDCL,a dowód DRAT jest wypisywany i sprawdzany niezależnym checkerem \texttt{drat-trim}(\texttt{cyclic\_sat.py},ogólne w $(r,s,n)$;instancje w Tabelach~\ref{tab:cyclic55} i~\ref{tab:cyclic46};commit checkera w Tabeli~\ref{tab:hashes}..
+
+\subsection{Rozszerzenie o jeden wierzchołek}\label{sec:ext}
+Dla zweryfikowanego kolorowania $(r,s)$-wolnego $\K_n$ dodanie wierzchołka $w$ sprowadza się do wyboru jego czerwonego otoczenia $Y$ przy ograniczeniach: żadna czerwona $(r-1)$-klika nie może być cała czerwona do $w$ i żadna błękitna $(s-1)$-klika nie może być cała błękitna do $w$;każda klika jednobarwna leży wtedy w kopii już wykluczonej wewnątrz $\K_n$. To instancja SAT z $n$ zmiennymi. Niespełnialność tej instancji wraz ze zwalidowanym dowodem DRAT jest weryfikowalnym maszynowo certyfikatem,że dany graf jest maksymalny wśród grafów $(r,s)$-wolnych(\texttt{emit\_cnf.py},\texttt{certify\_ext.py}..
+
+\subsection{Przeszukiwania bez certyfikatów}\label{sec:noncerts}
+Uruchomiliśmy też dwa przeszukiwania niezupełne lub ograniczone zasobowo;ich wyniki podajemy w Sekcji~\ref{sec:limits} jako brak werdyktu: portfel CDCL z losowym przemianowaniem wierzchołków i dywersyfikacją solverów($32$ workery po $12$~h na $\K_{43}$)oraz zwektoryzowane przeszukiwanie lokalne symulowanym wyżarzaniem z przyrostowo utrzymywanym licznikiem klik jednobarwnych(do $24$ procesów roboczych;przyrost kosztu zweryfikowany względem brute force dla $0,\dots,300$ iteracji w zestawie testów jednostkowych). Żaden nie dał certyfikatu i żaden nie jest używany jako dowód gdziekolwiek w tej nocie
+
+\section{Wyniki}\label{sec:results}
+
+\subsection{Rodzina cykliczna $(5,5)$}\label{sec:res55}
+
+\begin{theorem}\label{thm:cyclic}
+Dla $n \in \{42,43,44,45,46,47,48\}$ nie istnieje cykliczne kolorowanie $(5,5)$-wolne $\K_n$. Dla $n = 41$ dokładnie $20$ z $2^{20} = 1\,048\,576$ kolorowań cyklicznych jest $(5,5)$-wolnych(dziesięć z dokładnością do zamiany kolorów);klasy czerwone jednego z nich to $\{2,3,4,6,7,9,10,11,15,16\}$\end{theorem}
+
+\begin{proof}
+Wyczerpujący przegląd wszystkich $2^h$ kolorowań cyklicznych transformatą podzbiorów z Sekcji~3.2,niezależnie wyprowadzony ponownie i certyfikowany kodowaniem CDCL oraz dowodami DRAT z Sekcji~3.3(Tabela~\ref{tab:cyclic55});dla $n=41$ wskazane kolorowanie jest sprawdzone brute force po wszystkich $\binom{41}{5} = 749\,398$ podzbiorach pięcioelementowych\end{proof}
+
+\begin{table}[ht]\centering\small
+\begin{tabular}{rrrrrrl}
+\toprule
+$n$ & $h$ & kolorowania cykliczne & różne maski K5 & \multicolumn{2}{c}{przegląd wyczerpujący} & certyfikat \\
+ & $2^h$ & (na kolor)& czas (s)& werdykt & DRAT \\
+\midrule
+41 & 20 & $1\,048\,576$ & 8\,434 & 6,5 & 20 wolnych & (model SAT) \\
+42 & 21 & $2\,097\,152$ & 9\,061 & 7,7 & brak & zweryfikowany \\
+43 & 21 & $2\,097\,152$ & 10\,437 & 8,5 & brak & zweryfikowany \\
+44 & 22 & $4\,194\,304$ & 11\,231 & 10,7 & brak & zweryfikowany \\
+45 & 22 & $4\,194\,304$ & 12\,749 & 11,6 & brak & zweryfikowany \\
+46 & 23 & $8\,388\,608$ & 13\,640 & 15,0 & brak & zweryfikowany \\
+47 & 23 & $8\,388\,608$ & 15\,456 & 16,7 & brak & zweryfikowany \\
+48 & 24 & $16\,777\,216$ & 16\,488 & 22,6 & brak & zweryfikowany \\
+\bottomrule
+\end{tabular}
+\caption{Kolorowania cykliczne $(5,5)$-wolne $\K_n$. Czasy to czas zegarowy jednego rdzenia na maszynie weryfikującej(laptop klasy i5,Python 3.12,NumPy);ponowne wyprowadzenie przez CDCL i walidacja \texttt{drat-trim} zajmują poniżej minuty na $n$.}
+\label{tab:cyclic55}
+\end{table}
+
+\begin{corollary}\label{cor:vt5}
+Nie istnieje wierzchołkowo-tranzytywny graf $(5,5)$-wolny na $43$ wierzchołkach ani na $47$ wierzchołkach\end{corollary}
+
+\begin{proof}
+Graf wierzchołkowo-tranzytywny rzędu pierwszego jest cyrkulacyjny;stosujemy Twierdzenie~\ref{thm:cyclic} dla $n = 43$ oraz $n = 47$\end{proof}
+
+\begin{remark}
+Wniosek jest tym,co czyni obliczenie istotnym dla otwartego przypadku:każdy kontrprzykład dla hipotezy $\R{5}{5} = 43$ --- czyli każdy graf $(5,5)$-wolny na $43$ wierzchołkach --- musi mieć grupę automorfizmów trywialną lub nietranzytywną,więc najtańsze do sprawdzenia kandydatury o wysokiej symetrii są wyeliminowane dowodem. To samo obliczenie nic nie mówi o rzędach złożonych $42$ i $44$--$48$,gdzie tranzytywność nie wymusza cyrkulacyjności:dla $n = 42$ sama klasyczna konstrukcja nie jest cykliczna,a wierzchołkowo-tranzytywne grafy $(5,5)$-wolne rzędu złożonego nie są wykluczone przez Twierdzenie~\ref{thm:cyclic}\end{remark}
+
+\subsection{Rodzina cykliczna $(4,6)$}\label{sec:res46}
+
+\begin{theorem}\label{thm:cyclic46}
+Dla $n \in \{34,35,36,37,38,39,40\}$ nie istnieje cykliczne kolorowanie $(4,6)$-wolne $\K_n$\end{theorem}
+
+\begin{proof}
+Identyczna ścieżka jak w Twierdzeniu~\ref{thm:cyclic}:wyczerpujący przegląd transformatą podzbiorów,niezależnie wyprowadzony ponownie kodowaniem CDCL/DRAT(Tabela~\ref{tab:cyclic46});każdy podany werdykt \texttt{drat-trim} w tabeli jest \textsc{zweryfikowany}\end{proof}
+
+\begin{table}[ht]\centering\small
+\begin{tabular}{rrrrrrrl}
+\toprule
+$n$ & $h$ & różne maski & \multirow{2}{*}{maski czerwone} & \multirow{2}{*}{maski błękitne} & \multirow{2}{*}{klauzule} & \multirow{2}{*}{linie dowodu} & certyfikat \\
+ & $2^h$ & & & DRAT \\
+\midrule
+34 & 17 & $2^{17}$ & 712 & 10\,339 &11\,051 &248 &\textsc{zweryfikowany} \\
+35 & 17 & $2^{17}$ & 789 &12\,085 &12\,874 &285 &\textsc{zweryfikowany} \\
+36 & 18 & $2^{18}$ & 844 &15\,950 &16\,794 &152 &\textsc{zweryfikowany} \\
+37 & 18 & $2^{18}$ & 933 &19\,263 &20\,196 &333 &\textsc{zweryfikowany} \\
+38 & 19 & $2^{19}$ & 1\,014 &24\,223 &25\,237 &303 &\textsc{zweryfikowany} \\
+39 &  19 & $2^{19}$ & 1\,085 &28\,803 &29\,888 &299 &\textsc{zweryfikowany} \\
+40 & 20 & $2^{20}$ & 1\,197 &33\,637 &34\,834 &276 &\textsc{zweryfikowany} \\
+\bottomrule
+\end{tabular}
+\caption{Kolorowania cykliczne $(4,6)$-wolne $\K_n$:nie istnieje cykliczne kolorowanie $(4,6)$-wolne dla $34 \le n \le 40$."Różne maski" = wszystkie maski klas cięciw realizowane przez podzbiór mocy $r$ lub $s$;maski czerwone/błękitne to liczniki użyte w kodowaniu SAT}\label{tab:cyclic46}
+\end{table}
+
+\begin{corollary}\label{cor:vt46}
+Nie istnieje wierzchołkowo-tranzytywny graf $(4,6)$-wolny na $37$ wierzchołkach\end{corollary}
+
+\begin{proof}
+$37$ jest pierwsze,więc graf wierzchołkowo-tranzytywny na $37$ wierzchołkach jest cyrkulacyjny;stosujemy Twierdzenie~\ref{thm:cyclic46} dla $n = 37$\end{proof}
+
+\begin{remark}\label{rem:exoo35}
+Opublikowany $35$-wierzchołkowy graf $(4,6)$-wolny Exoo dopuszcza automorfizm rzędu $4$ z punktem stałym;nie jest więc cyrkulacyjny ani wierzchołkowo-tranzytywny,i w szczególności nie należy do żadnej rodziny cyklicznej.
+Twierdzenie~\ref{thm:cyclic46} nie odtwarza więc tej konstrukcji.
+Znana dolna granica $\R{4}{6} \ge 36$ nie pochodzi z rodziny symetrycznej,którą jesteśmy w stanie wykluczyć.
+W konsekwencji każdy świadek $\R{4}{6} \ge 37$(czyli $(4,6)$-wolny $\K_{36}$)musi być podobnie asymetryczny.
+\end{remark}
+
+\subsection{Maksymalność grafu Exoo}\label{sec:resexoo}
+
+\begin{theorem}\label{thm:exoo}
+$(5,5)$-wolny graf na $42$ wierzchołkach opublikowany przez Exoo (1989) ---w naszym eksporcie $435$ czerwonych krawędzi,zweryfikowany jako niezawierający jednobarwnego $\K_5$ --- nie rozszerza się do kolorowania $(5,5)$-wolnego $\K_{43}$. Równoważnie:ten graf jest maksymalny wśród grafów $(5,5)$-wolnych\end{theorem}
+
+\begin{proof}
+Instancja rozszerzenia z Sekcji~3.4 ma $42$ zmienne i $2318$ klauzul($1148$ czerwonych i $1170$ błękitnych $\K_4$),plik CNF \texttt{ext42.cnf}(skrót SHA-256 w Tabeli~\ref{tab:hashes}). Jest niespełnialna; dowody DRAT wytworzone przez trzy niezależne solvery CDCL zostały zwalidowane przez \texttt{drat-trim}(Tabela~\ref{tab:proofs}\end{proof}
+
+\begin{remark}
+Nie wyklucza to \emph{innych} grafów $(5,5)$-wolnych na $43$ wierzchołkach:jeśli świadek $\R{5}{5} \ge 44$ istnieje,jego $42$-wierzchołkowe podgrafy indukowane są z konieczności różne od opublikowanego\end{remark}
+
+\begin{table}[ht]\centering\small
+\begin{tabular}{llrrl}
+\toprule
+instancja & solver & linie dowodu & \texttt{drat-trim} & uwaga \\
+\midrule
+\texttt{ext42} & Glucose(przez \texttt{python-sat})& 92 &\textsc{zweryfikowany}& trzy nazwy solvera,identyczne bajty \\
+\texttt{ext42} & Lingeling& 139 &\textsc{zweryfikowany}& niezależne wyprowadzenie \\
+\texttt{ext42} & MapleChrono& 116 &\textsc{zweryfikowany}& niezależne wyprowadzenie \\
+\texttt{ext42} & CaDiCaL(3 wersje)& 191/0/131 & niezweryf.& eksport API to nie DRAT \\
+\bottomrule
+\end{tabular}
+\caption{Certyfikaty niespełnialności i ich zewnętrzna walidacja dla instancji rozszerzenia. Wiersze z CaDiCaL podajemy dla pełności obrazu:tekst DRAT zwracany przez binding nie jest poprawnym dowodem dla checkera,więc żaden wniosek na nim nie stoi.}\label{tab:proofs}
+\end{table}
+
+\subsection{Ponowna weryfikacja opublikowanych świadków}\label{sec:reswitnesses}
+
+\begin{proposition}\label{prop:witnesses}
+W ramach tego pakietu oba opublikowane świadki zostały ponownie zweryfikowane od zera niezależnym sprawdzaczem brute force z Sekcji~\ref{sec:verifier}:graf Exoo na $42$ wierzchołkach jest $(5,5)$-wolny(żaden $5$-podzbiór nie jest jednobarwny),a graf Exoo na $35$ wierzchołkach jest $(4,6)$-wolny(brak czerwonego $\K_4$ i brak błękitnego $\K_6$\end{proposition}
+
+\begin{proof}
+\texttt{verify\_exoo.py} wczytuje listy krawędzi i uruchamia \texttt{check\_coloring} po wszystkich $\binom{42}{5}+\binom{35}{4}+\binom{35}{6}$ podzbiorach;oba podnoszą \texttt{verified=True}. Listy krawędzi i skróty są w Tabeli~\ref{tab:hashes}. Są to \emph{ponowne weryfikacje opublikowanych danych},nie nowe konstrukcje;kotwiczą weryfikator na obiektach z literatury\end{proof}
+
+\section{Weryfikacja i odtwarzalność}\label{sec:repro}
+
+Ta nota niesie zupełny pakiet artefaktów w \texttt{anc/} w źródle arXiv,a twierdzenia na nich stoją. Ten sam zbiór jest zdublowany w wersjonowanym otwartym repozytorium,\url{https://github.com/kamil-libront/ramsey-certified-artefacts},oraz --- jako trwały zapis,który ma przetrwać preprint --- instancje CNF i certyfikaty DRAT są również zdeponowane w repozytorium stałym z numerem DOI(Zenodo);linki wstawiamy przy wysyłce. Jeśli arXiv odrzuci paczkę ze względu na limit wielkości,depozyt jest miejscem kanonicznym,a w \texttt{anc/} pozostaje tylko odnośnik do niego. Każdy artefakt powstał i został sprawdzony lokalnie;żadne dane nie opuściły maszyn. Zupełny zbiór,ze skrótami SHA-256 i dokładnymi komendami,jest w towarzyszącym \texttt{REPRODUCE.md}(angielski;tu notujemy zasadę i komendy nagłówkowe.
+
+
+
+\paragraph{Protokół weryfikacji.} Czytelnik,który chce potwierdzić twierdzenia,nie potrzebuje dostępu do naszych maszyn,i w istocie \emph{nie} powinien im ufać. Protokół jest:(1)~ponownie policzyć przegląd rodziny cyklicznej(Sekcja~\ref{sec:enumerate},sekundy);(2)~ponownie wyprowadzić to samo twierdzenie z dostarczonego CNF sprawdzaczem \texttt{drat-trim}(Sekcja~\ref{sec:cdcl},sekundy do minuty;(3)~ponownie uruchomić sprawdzenia brute force kolorowań pozytywnych(Sekcja~\ref{sec:verifier});(4)~zweryfikować dowody DRAT Twierdzenia~\ref{thm:exoo}. Kroki 2 i 3 używają checkerów zewnętrznych wobec naszego przeszukiwania i kodu przeglądu,więc błąd sprzętu lub implementacji w naszej warstwie nie może przeniknąć do zgłoszonego werdyktu.;;
+
+\begin{table}[ht]\centering\small
+\begin{tabular}{ll}
+\toprule
+artefakt & SHA-256(pierwsze 16 znaków hex) \\
+\midrule
+Exoo $42$-w.$(5,5)$-wolny,lista krawędzi($435$ czerwonych)&\texttt{92549d13efc6dbfb} \\
+Exoo $35$-w.$(4,6)$-wolny,lista krawędzi&\texttt{ad43f25945f5eef7} \\
+\texttt{cyclic\_ramsey.py}(przegląd zeta)&\texttt{269a88b09eb6c23d} \\
+\texttt{cyclic\_sat.py}(kodowanie CDCL + DRAT)&\texttt{3c08163c75a31eb1} \\
+\makecell[l]{\texttt{emit\_cnf.py} \\ \texttt{certify\_ext.py} \\ \texttt{extend\_ramsey.py}}&\makecell[l]{\texttt{23da360b\ldots} \\ \texttt{73f56b36\ldots} \\ \texttt{1b150c65\ldots}} \\
+\texttt{ramsey\_enc.py}(niezależny weryfikator brute force)&\texttt{bba3da8e1023aeae} \\
+\texttt{ext42.cnf} ($42$ zmienne,$2318$ klauzul)&\texttt{2b5735a4d1cd4056} \\
+\makecell[l]{\texttt{cyc\_42.cnf} \\ \texttt{cyc\_43.cnf} \\ \texttt{cyc\_48.cnf}}&\makecell[l]{\texttt{5dd03b68\ldots} \\ \texttt{af966485\ldots} \\ \texttt{f13c0d8e\ldots}} \\
+\makecell[l]{\texttt{cyc\_42.drat} \\ \texttt{cyc\_43.drat} \\ \texttt{cyc\_48.drat}}&\makecell[l]{\texttt{e7db6b9d\ldots} \\ \texttt{4e27cbd9\ldots} \\ \texttt{30691b16\ldots}} \\
+\texttt{cyc46\_34..40.cnf} i \texttt{cyc46\_34..40.drat}(ZWERYFIKOWANE)&patrz \texttt{REPRODUCE.md} \\
+dowody DRAT \texttt{ext42}(Glu/Ling/Maple)&\makecell[l]{\texttt{683c7cf5\ldots} \\ \texttt{2c6d2dd1\ldots} \\ \texttt{41886e4c\ldots}} \\
+\bottomrule
+\end{tabular}
+\caption{Skróty SHA-256 wejść i certyfikatów;pełne skróty,wraz ze skryptami i logami,są w dołączonym pakiecie. Checker \texttt{drat-trim} zbudowano z commita \texttt{2e3b2dc0}(2024-11-25.}\label{tab:hashes}
+\end{table}
+
+\begin{table}[ht]\centering\small
+\begin{tabular}{ll}
+\toprule
+zadanie & komenda \\
+\midrule
+przegląd cykliczny& \texttt{python3 cyclic\_ramsey.py 5 5 <n>}(i \texttt{4 6 <n>}) \\
+certyfikacja cykliczna& \texttt{python3 cyclic\_sat.py <r> <s> <n> glucose4 cyc\_<n>.cnf cyc\_<n>.drat} \\
+sprawdzenie dowodu& \texttt{drat-trim <f>.cnf <f>.drat} $\to$ \textsc{zweryfikowany} \\
+instancja rozszerzenia& \texttt{python3 emit\_cnf.py 5 5 exoo42.txt ext42.cnf} \\
+certyfikat rozszerzenia& \texttt{python3 certify\_ext.py  5 5 exoo42.txt glucose4 prova.drat} \\
+sprawdzenie świadka& \texttt{python3 ramsey\_enc.py check 41 red41.txt 5 5} \\
+\bottomrule
+\end{tabular}
+\caption{Komendy potrzebne do odtworzenia i niezależnego sprawdzenia każdego wyniku tej noty. Uruchomienie sprawdzeń(prawa strona)jest wszystkim,co sceptyczny czytelnik musi zrobić.}\label{tab:cmd}
+\end{table}
+
+
+\textbf{Sprzęt.} Przeszukiwania szły na dwuprocesorowej stacji roboczej(2 $\times$ Intel Xeon E5-2696 v3,$36$ rdzeni / $72$ wątki,$256$~GB RAM,Windows~11);przegląd,certyfikacja i sprawdzanie dowodów opisane tutaj szły na laptopie (4 rdzenie, Linux). \textbf{Oprogramowanie.} Python 3.11--3.12,NumPy,\texttt{python-sat}(solvery:CaDiCaL,Glucose,Lingeling,MapleChrono,MapleSAT,MergeSAT),\texttt{drat-trim}(commit \texttt{2e3b2dc0}). Dowolny z dostarczonych dowodów można ponownie wygenerować na dowolnej maszynie z \texttt{python-sat} i sprawdzić z \texttt{drat-trim}.
+
+\section{Prace wcześniejsze i pozycjonowanie}\label{sec:prior}
+
+Granice $43 \le \R{5}{5} \le 46$ oraz $36 \le \R{4}{6} \le 40$,konstrukcje Exoo z $1989$ i $2012$ roku,hipoteza $\R{5}{5} = 43$ i górna granica Angeltveita--McKaya są standardowe;zob. dynamiczny przegląd Radziszowskiego i literaturę tam cytowaną. Nowa metodologia zweryfikowanych obliczeń dla liczb Ramseya --- certyfikaty SAT + algebra komputerowa w stylu Brighta i współpracowników --- jest szablonem,którym podążamy dla warstwy DRAT:sedno jest takie,że wyczerpujący przegląd staje się twierdzeniem matematycznym dopiero wtedy,gdy niezależny checker potwierdzi maszynowo czytelny dowód werdyktu
+
+\begin{remark}
+Twierdzenia tutaj dotyczą \emph{obiektów}(rodzin cyklicznych i jednego konkretnego grafu)i są zweryfikowane niezależnie;czy wyczerpanie rodzin cyklicznych i twierdzenie o maksymalności są już w literaturze,jest prostopadłe do ich poprawności. Tam,gdzie pokrywają się ze znanymi wynikami,nota stoi jako niezależne,certyfikowane odtworzenie;tam,gdzie nie,gdzie są nowymi(drobnyimi)faktami obliczalnymi. Żaden wniosek noty nie zależy od nowości\end{remark}
+
+\section{Ograniczenia i brak werdyktu}\label{sec:limits}
+
+Zapisujemy wprost,czego \emph{nie} ustaliliśmy,aby nic tutaj nie zostało nadczytane
+
+\begin{enumerate}
+\item \textbf{Brak werdyktu dla $\K_{43}$.} Portfel CDCL($32$ workery z losowym przemianowaniem wierzchołków i pięcioma konfiguracjami solverów)działał $12$~h na worker na instancji $(5,5)$-wolnej dla $n = 43$ --- około $384$ godzin procesora --- bez rozstrzygnięcia. Zgłaszamy brak werdyktu,nie dowód w żadną stronę
+
+\item \textbf{Przeszukiwanie lokalne nie odtwarza jeszcze znanych konstrukcji;raportujemy to jako niepowodzenie kalibracji,nie jako odkrycie.} Nasze zwektoryzowane przeszukiwanie wyżarzaniem utrzymuje przyrostowo zweryfikowany obiektyw klikowy(mono-czerwone $\K_r$ plus mono-błękitne $\K_s$). Na $K_{35}$ dla $(4,6)$ obiektyw ten osiąga plateau przy najlepszym koszcie $\approx 816$(wartość obiektywu $4\cdot\#(\text{czerwone }K_4) + 6\cdot\#(\text{błękitne }K_6)$;kolorowanie $(4,6)$-wolne ma wartość $0$)i na $K_{41}$ dla $(5,5)$ przy $\approx 4350$;;przyrost kosztu był zweryfikowany względem brute force,więc plateau nie jest artefaktem arytmetycznym. Dwanaście wariantów parametrów(temperatura,siła perturbacji,kick,progi stagnacji)plateauje na tej samej wartości --- strukturalne plateau obiektywu klikowego,nie niepowodzenie strojenia. Dodanie członu $\mathrm{P}_4$ indukowanego,który leży u podstaw metody Exoo(waga $\lambda$,maksymalizowany)i przemiatanie $\lambda \in \{0,8,20,40\}$ z $20$ workerami i $1800$~s na każdy również nie osiąga kosztu $0$(najlepszy $\ge 1056$). Skoro to przeszukiwanie nie odzyskuje obiektów,o których wiemy,że istnieją,jego wyniki "nie znalazłem" nic nie ważą;używamy go wyłącznie jako instrumentu kalibracyjnego. To główna lekcja metodyczna tego ćwiczenia:\emph{przeszukiwanie,które nie przeszło kontroli pozytywnych,nie może być cytowane jako dowód}.
+
+\item \textbf{Brak certyfikatu DRAT dla przebiegów CaDiCaL} przez API \texttt{python-sat};ważne certyfikaty w Tabeli~\ref{tab:proofs} pochodzą od innych solverów. Czystym rozwiązaniem byłby natywny wyjściowy dowód CaDiCaL i checker \texttt{drat-trim} lub LRAT
+
+\item \textbf{Zakres.} Twierdzenia~\ref{thm:cyclic},~\ref{thm:cyclic46} i~\ref{thm:exoo} dotyczą odpowiednio kolorowań cyklicznych i jednego konkretnego grafu. Żadne z nich nie jest argumentem zliczającym rozstrzygającym $\R{5}{5}$ lub $\R{4}{6}$;przycinają one rodziny kandydatów i wyznaczają symetryczną część przestrzeni poszukiwań
+
+\end{enumerate}
+
+\paragraph{Czego trzeba,by rozstrzygnąć $n = 43$.}
+Albo(i)kolorowania $(5,5)$-wolnego $\K_{43}$,co obaliłoby standardową hipotezę i co --- jak sugerują powyższe wyniki --- nie jest osiągalne naiwnym wyżarzaniem z próbowanych struktur;albo(ii)certyfikatu niespełnialności instancji o $903$ zmiennych,co dziś wymaga cube-and-conquer z dowodami DRAT/LRAT na podkostkach w stylu obliczenia $\R{5}{5} \le 46$,czyli zasobów klastrowych. Wkładem z jednej maszyny w tym kierunku może być certyfikowana niespełnialność strukturalnego \emph{ograniczenia}(jak tutaj),nie całej instancji---
+
+\section{Wnioski}
+
+Ta nota dostarcza pakiet faktów strukturalnych o grafach $(5,5)$-i $(4,6)$-wolnych,każdy poparty niezależnie sprawdzalnym artefaktem:rodziny cykliczne są puste w podanych zakresach(więc wierzchołkowo-tranzytywnych świadków na $43$,$47$ i $37$ wierzchołkach nie ma),graf Exoo na $42$ wierzchołkach jest maksymalny,a oba opublikowane świadki są ponownie zweryfikowane od zera. Twierdzenia negatywne niosą dowody DRAT zwalidowane zewnętrznym checkerem;a kolorowania pozytywne są ponownie sprawdzane brute force. Przypadki otwarte pozostają otwarte:nie zgłaszamy werdyktu dla $\R{5}{5}$ ani $\R{4}{6}$,portfel przez $384$ godziny procesora nic nie zwrócił,i wprost raportujemy niepowodzenie kalibracji naszego przeszukiwania lokalnego,aby nie było mylone z wynikiem. Czytelnik potrzebuje tylko komend z Tabeli~\ref{tab:cmd},by potwierdzić każde twierdzenie niezależnie---
+
+\paragraph{Podziękowania.}
+Obliczenia wykonano na własnym sprzęcie autora. Autor dziękuje opiekunom \texttt{drat-trim},\texttt{python-sat} i NumPy,szablonowi zweryfikowanych obliczeń C.~Brighta i współpracowników oraz G.~Exoo,B.~D.~McKayowi,S.~P.~Radziszowskiemu i V.~Angeltveitowi za konstrukcje i granice,które porządkują tę notę---
+
+\begin{thebibliography}{99}
+\bibitem{ramsey1930} F.~P. Ramsey,\emph{On a problem of formal logic},Proc. London Math. Soc.\textbf{s2-30}(1930)264--286.
+\bibitem{erdos1935} P.~Erd\H{o}s,G.~Szekeres,\emph{A combinatorial problem in geometry},Compositio Math.\textbf{2}(1935)463--470..
+\bibitem{greenwood1955} R.~E. Greenwood,A.~M. Gleason,\emph{Combinatorial relations and chromatic graphs},Canad. J. Math.\textbf{7}(1955)1--7..
+\bibitem{exoo1989} G.~Exoo,grafy $(5,5)$-wolne na $42$ wierzchołkach,1989(konstrukcja leżąca u podstaw $\R{5}{5} \ge 43$).
+\bibitem{exoo2012} G.~Exoo,\emph{On the Ramsey numbers $R(4,6)$},Electron. J. Combin.\textbf{19}(1)(2012)\#P66..
+\bibitem{mckay1995} B.~D. McKay,S.~P. Radziszowski,\emph{$R(4,5) = 25$},J. Graph Theory \textbf{19}(1995)309--322..
+\bibitem{am2024} V.~Angeltveit,B.~D. McKay,\emph{$R(5,5) \le 46$},arXiv:2409.15709(2024..
+\bibitem{ds1} S.~P. Radziszowski,\emph{Small Ramsey Numbers},Dynamic Survey DS1,Electron. J. Combin.(aktualizowany..
+\bibitem{drat} M.~J.~H. Heule,\emph{DRAT-trim: efficient checking and trimming using expressive clausal proofs},SAT 2014;kod:\texttt{github.com/marijnheule/drat-trim}.
+\bibitem{pysat} A.~Ignatiev,A.~Morgado,J.~Marques-Silva,\emph{PySAT:a Python toolkit for prototyping with SAT oracles},SAT 2018..
+\bibitem{verified-ramsey} Z.~Li,C.~Duggan,C.~Bright,V.~Ganesh,\emph{Verified certificates via SAT and computer algebra systems for the Ramsey $R(3,8)$ and $R(3,9)$ problems},arXiv:2502.06055(2025..
+\end{thebibliography}
+
+\end{document}
